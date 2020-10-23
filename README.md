@@ -8,5 +8,3 @@ IDE=pycharm
 gitbash-pycharm 연동
 
 아나콘다 가상환경 env 생성-pycharm연동
-
-ㅇㅇㅇㅇㅇㅇㅇㅇ
