@@ -1,5 +1,5 @@
 # knu-final-project
-## Contributor 
+## Contributors
 - [조승희](https://github.com/sa02045)
 - [박세인](https://github.com/sein126)
 - 이경욱
