@@ -38,3 +38,8 @@
 * Statiz 야구데이터사이트 http://www.statiz.co.kr/main.php 사이트에서 웹 크롤러 개발 후 데이터 모으기
 
 
+
+
+
+
+
