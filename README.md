@@ -43,9 +43,11 @@
 ### 1.1. About Model 
   1.1.1 간소화 -> 특정한 상황(주자 1루 상황)에서 번트 시행 여부를 결정
   
-      1) 사용할 모델 : Regression Vs Classfication    
+      1) 사용할 모델 : Regression Vs Classfication Vs Forest    
       - Classfication
         - 투수가 던질 공의 위치와 구질을 학습시킨 뒤 다음에 투수가 던질 구종과 위치를 예측하여 작전을 판단하자
+      - Random Forest
+        - 입력 데이터를 적절한 상황에 맞게 분류만 해주고 사람이 판단을 하자 
       - Regression
         - 상황과 타자의 성적, 작전 종류, 기대 득점, 득점 확률을 넣어 학습 시킨 뒤 특정 상황에서 득점 확률, 기대 득점을 예측하여 작전을 판단하자
         
