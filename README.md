@@ -30,7 +30,7 @@
       >matlib=3.2    
         * 계속 추가 예정
 
-### 2. github test 커밋 , 사용법 공유
+## 2. github test 커밋 , 사용법 공유
 
 <hr>
 
