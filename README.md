@@ -33,7 +33,7 @@
 ### 2. github test 커밋 , 사용법 공유
 
 ### 다음주 계획
-* Statiz 야구데이터사이트 http://www.statiz.co.kr/main.php 사이트에서 웹 크롤러 개발 후 데이터 모으기
+* [Statiz 야구데이터사이트](http://www.statiz.co.kr/main.php)에서 웹 크롤러 개발 후 데이터 모으기
 <hr>
 
 2주차
@@ -43,13 +43,26 @@
 ### 1.1. About Model 
   1.1.1 간소화 -> 특정한 상황(주자 1루 상황)에서 번트 시행 여부를 결정
   
-      1) 사용할 모델 : Regression Vs Classfication Vs Forest    
+      1) 사용할 모델 선정 : Regression Vs Classfication Vs Forest    
       - Classfication
         - 투수가 던질 공의 위치와 구질을 학습시킨 뒤 다음에 투수가 던질 구종과 위치를 예측하여 작전을 판단하자
       - Random Forest
         - 입력 데이터를 적절한 상황에 맞게 분류만 해주고 사람이 판단을 하자 
       - Regression
         - 상황과 타자의 성적, 작전 종류, 기대 득점, 득점 확률을 넣어 학습 시킨 뒤 특정 상황에서 득점 확률, 기대 득점을 예측하여 작전을 판단하자
-        
-        
+                
       2) Dataset
+      - statize 에서 크롤링해와서 사용
+      - 입력으로 이닝, 스코어, 타자의 세부성적(비율 스탯보다는 wRC+같은 세이버 매트릭스)과 번트를 칠 것인지 안칠것인지를 O,X로 표현하여 학습시킨다.
+      - O,X 여부는 번트 후 WPA가 임계값보다 높으면 승리에 기여한 번트라고 판단, O라고 학습시킨다. WPA가 임계값 보다 낮으면 X라고 학습
+      - 예시
+X | Y 
+----|----
+8 말/6:8/wOBA:0.339/BABIP:0.347/+wRC:86.5 | WPA : 0.008 -> O
+4 초/0:0/wOBA:0.339/BABIP:0.347/+wRC:86.5 | WPA : -0.021 -> x
+
+
+> [wRC+](https://namu.wiki/w/wRC+): 조정득점생산력
+
+> [WPA](https://namu.wiki/w/%EC%8A%B9%EB%A6%AC%20%ED%99%95%EB%A5%A0%20%EA%B8%B0%EC%97%AC%EB%8F%84): 승리확률기여도
+      
