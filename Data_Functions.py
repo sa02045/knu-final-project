@@ -210,6 +210,7 @@ def get_bunt_situation(name , year):
     #     print(s)
         s_ = []
         if not ('희생플라이' in sit[6] or '실책' in sit[6]) and ('1루' in sit[7]):
+            s_.append(sit[4][0]) # 타순
             s_.append(sit[2][0]) # 이닝
             s_.append(sit[7][:5]) # 상황
             s_.append(sit[7][-3:]) # 스코어
@@ -223,13 +224,13 @@ def get_bunt_situation(name , year):
 
     df = pd.DataFrame([a for a in s],
                      index = [i for i in range(len(s))],
-                     columns = ['이닝','상황','스코어','wpa'])
+                     columns = ['타순','이닝','상황','스코어','wpa'])
 
 #     print(df)
     return df
 
 
-# In[6]:
+# In[5]:
 
 
 def merge_data_and_exp_data(name_list, data_base, year, sit):
