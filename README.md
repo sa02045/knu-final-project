@@ -3,7 +3,7 @@
 - [조승희](https://github.com/sa02045)
 - [박세인](https://github.com/sein126)
 - 이경욱
-- 임동영
+- [임동영](https://github.com/imdognyoung)
 <hr>    
 
 1주차
