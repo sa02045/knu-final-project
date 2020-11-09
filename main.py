@@ -1,51 +1,49 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-import requests
-from bs4 import BeautifulSoup
+import tensorflow as tf
+import numpy as np
 import pandas as pd
-import copy
-import sys
-<<<<<<< HEAD
-# import import_ipynb
-=======
->>>>>>> cd6c0f5cf7fc48931e286bad228a45b4b29a35bb
-import Data_Functions
+import matplotlib as plt
+from sklearn.preprocessing import LabelEncoder
+#데이터 불러오기
+df=pd.read_csv(r"C:\Users\Lee Kyoung Wook\Desktop\asdasd\stat_data bunt_sample.csv")
+#df2=pd.read_csv(r"C:\Users\Lee Kyoung Wook\Desktop\asdasd\pythonProject\stat_data bunt_sample_LG_2019.csv")
+#wpa 0,1로 변경하기
+df['wpa']=df['wpa'].apply(lambda x: '노우' if x<-0.01 else '번트')
 
+for i in ['P','상황','스코어','타석','타수','득점','안타','2타','3타','홈런','루타','타점','도루','도실','볼넷','사구','고4','삼진','병살','희타','희비']:
+    df=df.drop(i, axis=1)
+#    df2=df2.drop(i, axis=1)
 
-# In[2]:
+data_set=df.values
 
+#x_predict=df2.iloc[1,:-1].values
+ #print(x_predict)
+x=data_set[:50,4:len(df.columns)-1].astype(float)
 
-if __name__ == '__main__':
-#     name_list = ['박해민','구자욱','강민호','러프','이학주','김헌곤','김동엽','박계범']
-    name_team_list = {
-                    'all_team' : ['박해민','구자욱','강민호','러프','이학주','김헌곤','김동엽','박계범',
-                            '정수빈', '최주환','김재환','허경민','박세혁','오재일','김재호',
-                            '박민우', '나성범', '양의지', '박석민','권희동','노진혁','김성욱',
-                            '이정후','김하성','서건창','박동원','김혜성',
-                            '최정','로맥','최항','김강민','한동민','채태인',
-                            '송광민','정근우','하주석','정은원','최진행',
-                            '나지완','최형우','김선빈','안치홍','김주찬',
-                            '이대호', '전준우','손아섭','정훈','신본기',
-                            '박용택','오지환','김민성','이형종','유강남',
-                            '황재균','장성우','유한준','강백호','박경수','로하스'
-                            ]
-                   }
-    year = '2019'
-    for team in name_team_list:
-        data_base = Data_Functions.get_stat_year(name_team_list[team],year)
-        BABIP = Data_Functions.get_BABIP(name_team_list[team],year)
-        RE24 = Data_Functions.get_RE24(name_team_list[team], year)
+y=data_set[:50,-1]
 
-        #print(data_base)
-        data_base.insert(31,'BABIP',BABIP)
-        data_base.insert(32,'RE24',RE24)
-        # print(data_base)
+e=LabelEncoder()
+e.fit(y)
+y=e.transform(y)
 
-        db_sample = Data_Functions.merge_data_and_exp_data(name_team_list[team], data_base, year,'bunt') # merge된 dataset을 db_sample에 리턴
-        db_sample.to_csv('data/bunt_sample_'+team+'_'+year+'.csv',encoding = 'euc-kr') # bunt_sample.csv 파일로 저장
-        # print(db_sample)
+print('x:' ,str(x))
+print('y":',y)
+seed=0
+np. random.seed(seed)
+tf.random.set_seed(seed)
 
+model=tf.keras.models.Sequential([
+    tf.keras.layers.Dense(20,input_dim=13,activation='relu')
+    ,tf.keras.layers.Dense(2,activation='softmax')
+])
+
+model.compile(loss='sparse_categorical_crossentropy',
+              optimizer='adam', metrics=['accuracy'])
+
+model.fit(x,y,epochs=50,batch_size=10)
+
+print('\n Accuracy=%.4f'% (model.evaluate(x,y)[1]))
+print(model.evaluate(x,y))
+X=np.array([23.  ,   58. ,     0.256 ,  0.354  , 0.387 ,  0.74   , 0.336 ,100. ,     1.02,
+    0.32  , -2.91  , -0.34   , 5.]).reshape(1,-1)
+model_predic=model.predict(X)
+print(model_predic)
