@@ -2,7 +2,7 @@
 ## Contributors
 - [조승희](https://github.com/sa02045)
 - [박세인](https://github.com/sein126)
-- 이경욱
+- [이경욱](https://github.com/dlruddnr)
 - [임동영](https://github.com/imdognyoung)
 <hr>    
 
@@ -301,7 +301,7 @@ Non-trainable params: 0
   * 'normal' 방식이 'glorot_uniform' 방식보다 평균적으로 0.3% 가량 높은 accuraccy를 보여줬다.
   * 이는 유의미한 수치로, 노드의 입출력값 사이에 어떠한 의미가 있을 것이라 생각한다
   
-  ### model 총평
+  ## 4. 총평
   * 전체적으로 결과가 많이 아쉽다. -> 생각한 만큼 accuracy가 나오지 않았다.
   * 데이터 set 갯수를 늘리는 것도 한계가 있다. -> statize에서 더 이상 긁어오는 것도 힘들다
   * test score와 k-fole cross-validation score가 좀 다르다. test score가 좀 더 높게 나온다. 
