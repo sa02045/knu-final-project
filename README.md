@@ -2,7 +2,7 @@
 ## Contributors
 - [조승희](https://github.com/sa02045)
 - [박세인](https://github.com/sein126)
-- 이경욱
+- [이경욱](https://github.com/dlruddnr)
 - [임동영](https://github.com/imdognyoung)
 <hr>    
 
@@ -91,22 +91,24 @@ BIP:0.347/+wRC:86.5 | WPA : 0.008 -> O
   
   ### 다음주 계획 
    - 교수님께서 말씀하신 도루 작전에 대해 입력값과 출력값에 대해 결정하기. 
-   
+
+<hr>
+
 3주차
 =====
    
-## 3. 도루전략 데이터 수집 및 모델링 
+## 1. 도루전략 데이터 수집 및 모델링 
 
-### 3.1. 데이터 수집 
+### 1.1. 데이터 수집 
   
   3.1.1 타자 데이터: 도루RAA,	도루 성공,	도루 실패, 성공 여부   
   3.1.2 포수 데이터: 도루,	도실,	도실%	,도루기회,	도루시도%,	도루   
   3.1.3 수집한 데이터 중 유의미한 데이터 선정 : 도루RAA, 도루성공, 도루실패, 도실%, 성공여부
 
 
-### 3.2. 딥러닝 모델링 및 결과 확인
+### 1.2. 딥러닝 모델링 및 결과 확인
      
-   3.2.1 모델링 설정
+   1.2.1 모델링 설정
    
       1) 사용할 모델 선정 : keras.models.Sequential() 사용   
       -input_노드 : 4개
@@ -117,7 +119,7 @@ BIP:0.347/+wRC:86.5 | WPA : 0.008 -> O
       -batch_size : 10
       -활성화 함수 : relu(input-> 히든층), sigmoid(히든층-> output)
       
-   3.2.2 결과확인
+   1.2.2 결과확인
    
    
       -결과: epoch_size를 증가시키면 loss값 감소 확인
@@ -126,4 +128,187 @@ BIP:0.347/+wRC:86.5 | WPA : 0.008 -> O
       [0.91,0.05]로 도루시 성공이 높은 것을 확인
       실제 경기결과와 일치
 
+main
+<hr>
 
+4주차
+=====
+
+## 1. 도루 작전 모델링 수정 및 보완   
+
+  ### 1.1. 데이터 양 증가 및 중복 데이터 삭제   
+  
+  1.1.1. 도루 작전에 대한 데이터 프레임 확정   
+  X | Y 
+----|----
+도루RAA, 타자의 도루시도, 타자의 도루 성공, 포수의 도루 저지율 | 성공 -> 1
+도루RAA, 타자의 도루시도, 타자의 도루 성공, 포수의 도루 저지율 | 실패 -> 0
+  
+  1.1.2. 데이터 양 증가   
+    - 2014~2020 까지 약 930여개의 데이터 축적.   
+    (단, 포수의 도루저지율 데이터는 구단별로 해당 연도 출장 수가 가장 많은 포수의 도루 저지율로 통일)   
+    
+  1.1.3. 데이터 중복 삭제    
+    - 데이터가 중복되는 경우나, nan 데이터의 경우는 삭제    
+    
+```python
+df = df.dropna()    
+df_d_d = df.drop_duplicates(['도루RAA', '도루 성공', '도루 실패', '도실%'], keep='first')
+```
+
+  ### 1.2. 모델 수정
+  
+  1.2.1 모델 수정 전 문제점
+  - 저번 주의 모델에서 치명적인 문제점 발견
+    1) 데이터 셋을 50개 정도만 사용
+    -> 그마저도 매우 중복된 데이터
+    2) y의 경우 encoding하는 중에 데이터셋의 모든 y가 0으로 바뀌어버리는 현상 발생
+    3) model이 binary_crossentropy를 사용하는 이진 분류 모델이 아닌 sparse categorical crossentropy를 사용하는 다중 분류 함수 모델로 구성
+    -> 다중 분류 함수 모델로 구성하였으나 출력단에서 활성화 함수로 sigmoid 함수 사용
+    4) training set, validation set, test set 구분을 하지않은 채로 model training만 진행
+    -> 정량적 평가가 불가능
+    
+  1.2.2 모델 수정
+```python
+def create_model(optimizer = 'rmsprop', init ='glorot_uniform'):
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Dense(16,input_dim=4,activation='relu', kernel_initializer = init),
+        tf.keras.layers.Dense(16,activation='relu', kernel_initializer = init),
+        tf.keras.layers.Dense(16,activation='relu', kernel_initializer = init),
+        tf.keras.layers.Dense(16,activation='relu', kernel_initializer = init),
+        tf.keras.layers.Dense(16,activation='relu', kernel_initializer = init),
+        tf.keras.layers.Dense(1,activation='sigmoid', kernel_initializer = init)
+    ])
+    model.compile(loss='binary_crossentropy',
+                  optimizer=optimizer , metrics=['accuracy'])
+    return model
+
+# 6개의 hidden layer 구성
+# 각 layer마다 output node는 16개로 구성 및 활성화 함수는 'relu' 사용
+# deep 하지만, gradient vanishing이 일어나지 않도록 narrow하게 구성(model을 wide하고 short하게 짜는 것 보다 이 방법이 나았음)
+# optimizer는 adam 보다 RMSprop(Root Mean Square propagation)사용
+# rmsprop => 경사 하강법을 빠르게 하는 모멘텀과 같은 알고리즘 중 하나.손실함수의 최저점으로 나아갈 때,
+#            불필요하게 수직 방향으로 진동하는 것을 제한함으로써 빠르게 학습이 이루어지게 유도함.
+# 
+# 이진 분류 이므로 출력단 node = 1, 활성화 함수는 sigmoid 사용
+# kerner_initializer로 xavier 방식을 통한 weight initialization 실행
+```   
+
+```python
+model.summary()
+```
+  ayer (type)         |        Output Shape      |        Param #   
+  -----|-------------------------------|---------------
+dense (Dense)          |      (None, 16)           |     80        
+dense_1 (Dense)       |       (None, 16)          |      272       
+dense_2 (Dense)        |      (None, 16)          |      272       
+dense_3 (Dense)        |      (None, 16)           |     272       
+dense_4 (Dense)         |     (None, 16)         |       272       
+dense_5 (Dense)        |      (None, 1)           |      17        
+
+Total params: 1,185   
+Trainable params: 1,185   
+Non-trainable params: 0   
+
+  1.2.3 모델 보완
+    * dataset을 training set, validation set, test set으로 나누어 검증 실행
+    -> K-fold cross-validation을 통한 검증
+    
+  ## 2. model 평가
+    
+  ### 2.1 random seed를 통한 training set, validation set 분류에 의한 평가
+  2.1.1 set 분리
+  ```python
+  seed=7
+  np. random.seed(seed)
+  tf.random.set_seed(seed)
+  train_indices = np.random.choice(len(x[:-50]), round(len(x[:-50])*0.8), replace=False)
+  val_indices = np.array(list(set(range(len(x[:-50]))) - set(train_indices)))
+  .
+  .
+  .
+  x_test = x[-50:]
+  y_test = y_encoded[-50:]
+  ```
+  epoch = 200, batchsize = 80 으로 실행
+  ```
+  model.evaluate(x,y) : [0.5582096909701065, 0.7340877]
+  ```   
+  => 다양한 epoch와 batchsize로 모델을 training 시켰으나, 결국 test set 고정으로 인해 어떤 값이 더 적합한 하이퍼 파라미터인지 애매   
+  => *K-fold cross-validation*을 통해 검증
+  
+  ### 2.2 K-fold cross-validation
+  2.2.1 다양한 경우의 하이퍼 파라미터 셋 결정
+  ```python
+  kfold = StratifiedKFold(n_splits = 5, shuffle=True, random_state = seed)
+  ```
+  => fold 수 : 5   
+  ```python
+  optimizers = ['rmsprop', 'adam']
+  inits = ['glorot_uniform', 'normal']
+  epochs = [50, 100, 150]
+  batches = [30, 50]
+  ```
+  -> 이중에서 best evaluation을 결정   
+  
+  ```linux
+  Best: 0.729124 using {'batch_size': 30, 'epochs': 50, 'init': 'normal', 'optimizer': 'rmsprop'}
+  0.728049 (0.002355) with: {'batch_size': 30, 'epochs': 50, 'init': 'glorot_uniform', 'optimizer': 'rmsprop'}
+  0.726985 (0.002949) with: {'batch_size': 30, 'epochs': 50, 'init': 'glorot_uniform', 'optimizer': 'adam'}
+  0.729124 (0.002313) with: {'batch_size': 30, 'epochs': 50, 'init': 'normal', 'optimizer': 'rmsprop'}
+  0.729124 (0.002313) with: {'batch_size': 30, 'epochs': 50, 'init': 'normal', 'optimizer': 'adam'}
+  0.725916 (0.004909) with: {'batch_size': 30, 'epochs': 100, 'init': 'glorot_uniform', 'optimizer': 'rmsprop'}
+  0.725916 (0.004909) with: {'batch_size': 30, 'epochs': 100, 'init': 'glorot_uniform', 'optimizer': 'adam'}
+  0.729124 (0.002313) with: {'batch_size': 30, 'epochs': 100, 'init': 'normal', 'optimizer': 'rmsprop'}
+  0.729124 (0.002313) with: {'batch_size': 30, 'epochs': 100, 'init': 'normal', 'optimizer': 'adam'}
+  0.725910 (0.005212) with: {'batch_size': 30, 'epochs': 150, 'init': 'glorot_uniform', 'optimizer': 'rmsprop'}
+  0.725904 (0.002737) with: {'batch_size': 30, 'epochs': 150, 'init': 'glorot_uniform', 'optimizer': 'adam'}
+  0.729124 (0.002313) with: {'batch_size': 30, 'epochs': 150, 'init': 'normal', 'optimizer': 'rmsprop'}
+  0.729124 (0.002313) with: {'batch_size': 30, 'epochs': 150, 'init': 'normal', 'optimizer': 'adam'}
+  0.726985 (0.002949) with: {'batch_size': 50, 'epochs': 50, 'init': 'glorot_uniform', 'optimizer': 'rmsprop'}
+  0.729124 (0.002313) with: {'batch_size': 50, 'epochs': 50, 'init': 'glorot_uniform', 'optimizer': 'adam'}
+  0.729124 (0.002313) with: {'batch_size': 50, 'epochs': 50, 'init': 'normal', 'optimizer': 'rmsprop'}
+  0.729124 (0.002313) with: {'batch_size': 50, 'epochs': 50, 'init': 'normal', 'optimizer': 'adam'}
+  0.725910 (0.002072) with: {'batch_size': 50, 'epochs': 100, 'init': 'glorot_uniform', 'optimizer': 'rmsprop'}
+  0.725916 (0.004909) with: {'batch_size': 50, 'epochs': 100, 'init': 'glorot_uniform', 'optimizer': 'adam'}
+  0.729124 (0.002313) with: {'batch_size': 50, 'epochs': 100, 'init': 'normal', 'optimizer': 'rmsprop'}
+  0.729124 (0.002313) with: {'batch_size': 50, 'epochs': 100, 'init': 'normal', 'optimizer': 'adam'}
+  0.725904 (0.002737) with: {'batch_size': 50, 'epochs': 150, 'init': 'glorot_uniform', 'optimizer': 'rmsprop'}
+  0.724840 (0.002440) with: {'batch_size': 50, 'epochs': 150, 'init': 'glorot_uniform', 'optimizer': 'adam'}
+  0.729124 (0.002313) with: {'batch_size': 50, 'epochs': 150, 'init': 'normal', 'optimizer': 'rmsprop'}
+  0.729124 (0.002313) with: {'batch_size': 50, 'epochs': 150, 'init': 'normal', 'optimizer': 'adam'}
+  ```
+  => 검증 결과 {'batch_size': 30, 'epochs': 50, 'init': 'normal', 'optimizer': 'rmsprop'} 일때 best evaluation 발생   
+  > 모델 weight 저장 : https://blog.naver.com/asdjklfgh97/222109500203    
+  > 콜백함수 만들기 : https://www.tensorflow.org/guide/keras/train_and_evaluate    
+  > k-fold cross-validation : https://3months.tistory.com/321   
+  > 베스트 하이퍼 파라미터 선정하기 : https://blog.naver.com/trimurti/221379458846    
+  
+  ## 3. 고찰    
+  ### 3.1 model depth, wide
+  * depth는 너무 깊으면 gradient vanishing이 일어날 가능성이 높다.
+  * wide하게 model을 구성한다면 parameter가 지나치게 많아진다. input으로 들어가는 x_parameter가 고작 4개 뿐인데 대규모의 parameter가 필요할까?
+  * 결론적으로 x를 구분해줄 x_parameter가 너무 적다는 생각이 들었다.
+  
+  ### 3.2 optimizer
+  * rmsprop와 adam에서 accuracy차이는 그닥 없다. 다만 rmsprop가 특정 환경에서 더 빠른 모멘텀을 가지고 경사하강을 실행하기 때문에 epoch가 적은 상황에서는 adam보다 accuracy가 더 좋은 모습을 보여주는듯 하다.
+  
+  ### 3.3 epoch와 batch_size
+  * batch_size는 작을 수록 미세하게나마 성능이 향상된다.
+  * epoch가 증가할 수록 accuracy가 증가하는 경향이 매우 적다. 즉 epoch를 많이 해봤자 큰 의미가 없다.
+
+  ### 3.4 initialization
+  * initializer로 xavier 방식의 'glorot_uniform'(입력값과 출력값 사이의 난수를 선택해서 입력값의 제곱근으로 나눈다)와 정규화 된 수를 생성해주는 'normal' 방식 중 하나를 선택했다.
+  * 'normal' 방식이 'glorot_uniform' 방식보다 평균적으로 0.3% 가량 높은 accuraccy를 보여줬다.
+  * 이는 유의미한 수치로, 노드의 입출력값 사이에 어떠한 의미가 있을 것이라 생각한다
+  
+  ## 4. 총평
+  * 전체적으로 결과가 많이 아쉽다. -> 생각한 만큼 accuracy가 나오지 않았다.
+  * 데이터 set 갯수를 늘리는 것도 한계가 있다. -> statize에서 더 이상 긁어오는 것도 힘들다
+  * test score와 k-fole cross-validation score가 좀 다르다. test score가 좀 더 높게 나온다. 
+  * test set을 통한 예측 시, 예측 값의 bias가 한쪽으로 몰린 느낌이다. 이를 수정 보완 할 필요가 있어 보인다.
+  * x_parameter를 늘리던가, batch_normalization 과 같은 기법으로 데이터들간의 correlation 과 같은 '관계'들을 유지시켜 줄 필요가 있다고 생각한다.
+  
+  <hr>
+=======
+main
