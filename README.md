@@ -128,7 +128,7 @@ BIP:0.347/+wRC:86.5 | WPA : 0.008 -> O
       [0.91,0.05]로 도루시 성공이 높은 것을 확인
       실제 경기결과와 일치
 
-main
+
 <hr>
 
 4주차
@@ -310,5 +310,4 @@ Non-trainable params: 0
   * x_parameter를 늘리던가, batch_normalization 과 같은 기법으로 데이터들간의 correlation 과 같은 '관계'들을 유지시켜 줄 필요가 있다고 생각한다.
   
   <hr>
-=======
-main
+
